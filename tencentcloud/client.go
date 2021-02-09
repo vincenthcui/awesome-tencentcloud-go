@@ -1,15 +1,17 @@
-package awesome_tencentcloud_go
+package tencentcloud
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/vincenthcui/awesome-tencentcloud-go/actions"
-	"github.com/vincenthcui/awesome-tencentcloud-go/sign"
+	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
+	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -39,16 +41,40 @@ const (
 	scopeTC3Request = "tc3_request"
 )
 
+type ClientOpts struct {
+	Region    string
+	Language  string
+	SecretID  string
+	SecretKey string
+}
+
+func NewClient(opts ClientOpts) Client {
+	if opts.Language == "" {
+		opts.Language = "zh-CN"
+	}
+	if opts.Region == "" {
+		opts.Region = "ap-guangzhou"
+	}
+
+	return &client{secretID: opts.SecretID, secretKey: opts.SecretKey, region: opts.Region, language: opts.Language, client: &http.Client{}}
+}
+
+type Client interface {
+	Send(ctx context.Context, action actions.Action, request, response interface{}) error
+}
+
 type client struct {
 	client *http.Client
 
-	region   string
-	language string
+	secretID  string
+	secretKey string
+	region    string
+	language  string
 }
 
 func (c *client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
 	now := time.Now()
-	timestamp := "TODO"
+	timestamp := strconv.FormatInt(now.Unix(), 10)
 	headers := map[string]string{
 		headerHost:        action.Host(defaultDomain),
 		headerContentType: contentTypeJson,
@@ -85,8 +111,8 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
 
 	string2sign := strings.Join([]string{algorithmSHA256, timestamp, scope, hashedCanonicalRequest}, lineSep)
-	signature := sign.Sign(string2sign, "SecretKey", action.Service(), date)
-	authorization := sign.Authorize(algorithmSHA256, "SecretID", scopeTC3Request, signedHeaderFields, signature)
+	signature := sign.Sign(string2sign, c.secretKey, action.Service(), date)
+	authorization := sign.Authorize(algorithmSHA256, c.secretID, scope, signedHeaderFields, signature)
 	headers["Authorization"] = authorization
 
 	u := url.URL{
@@ -104,14 +130,22 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 		httpRequest.Header[k] = []string{v}
 	}
 
+	output, _ := httputil.DumpRequest(httpRequest, true)
+	fmt.Println(string(output))
+
 	httpResponse, err := c.client.Do(httpRequest)
 	if err != nil {
 		return err
 	}
+	defer httpResponse.Body.Close()
+
+	output, _ = httputil.DumpResponse(httpResponse, true)
+	fmt.Println(string(output))
 	byts, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
 		return err
 	}
+
 	return json.Unmarshal(byts, response)
 	//if err != nil {
 	//	return errors.NewTencentCloudSDKError("ClientError.NetworkError", msg, "")
