@@ -12,14 +12,22 @@ const (
 
 type SignedHeaders map[string]string
 
-func (s SignedHeaders) PickOut(keys ...string) (signed string, headers string) {
-	if len(keys) == 0 {
+func (s SignedHeaders) PickOut(fields ...string) (signedFields string, signedHeaders string) {
+	if len(fields) == 0 {
 		return
 	}
-	lines := make([]string, 0, len(keys))
-	for _, key := range keys {
-		val, _ := s[key]
-		lines = append(keys, fmt.Sprintf("%s:%s\n", key, val))
+
+	lines := make([]string, 0, len(fields))
+	for _, field := range fields {
+		val, _ := s[field]
+		field = strings.ToLower(field)
+		lines = append(fields, fmt.Sprintf("%s:%s\n", field, val))
 	}
-	return strings.Join(keys, keySep), strings.Join(lines, lineSep)
+
+	// 参数要求小写
+	for idx, key := range fields {
+		fields[idx] = strings.ToLower(key)
+	}
+
+	return strings.Join(fields, keySep), strings.Join(lines, lineSep)
 }
