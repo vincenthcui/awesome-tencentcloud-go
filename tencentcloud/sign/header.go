@@ -21,7 +21,7 @@ func (s SignedHeaders) PickOut(fields ...string) (signedFields string, signedHea
 	for _, field := range fields {
 		val, _ := s[field]
 		field = strings.ToLower(field)
-		lines = append(fields, fmt.Sprintf("%s:%s\n", field, val))
+		lines = append(lines, fmt.Sprintf("%s:%s\n", field, val))
 	}
 
 	// 参数要求小写
