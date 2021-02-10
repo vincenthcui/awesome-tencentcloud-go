@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
@@ -40,24 +41,15 @@ const (
 	contentTypeJson = "application/json"
 	algorithmSHA256 = "TC3-HMAC-SHA256"
 	scopeTC3Request = "tc3_request"
+	languageZhCN    = "zh-CN"
 )
 
-type ClientOpts struct {
-	Region    string
-	Language  string
-	SecretID  string
-	SecretKey string
-}
-
-func NewClient(opts ClientOpts) Client {
-	if opts.Language == "" {
-		opts.Language = "zh-CN"
+func NewClient(opts ...Option) Client {
+	cli := &client{language: languageZhCN, region: regions.Guangzhou, client: &http.Client{}}
+	for idx := range opts {
+		opts[idx](cli)
 	}
-	if opts.Region == "" {
-		opts.Region = "ap-guangzhou"
-	}
-
-	return &client{secretID: opts.SecretID, secretKey: opts.SecretKey, region: opts.Region, language: opts.Language, client: &http.Client{}}
+	return cli
 }
 
 type Client interface {

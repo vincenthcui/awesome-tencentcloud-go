@@ -15,7 +15,7 @@ const (
 )
 
 func TestClient_Send(t *testing.T) {
-	cli := tencentcloud.NewClient(tencentcloud.ClientOpts{SecretID: secretID, SecretKey: secretKey})
+	cli := tencentcloud.NewClient(tencentcloud.WithSecret(secretID, secretKey))
 	req := cvm.DescribeInstancesRequest{}
 	resp := cvm.DescribeInstancesResponse{}
 	err := cli.Send(context.Background(), actions.CVMDescribeInstances, &req, &resp)
