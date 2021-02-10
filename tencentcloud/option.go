@@ -1,9 +1,9 @@
 package tencentcloud
 
-type Option func(*client)
+type Option func(*Client)
 
 func WithSecret(id, key string) Option {
-	return func(c *client) {
+	return func(c *Client) {
 		c.secretID = id
 		c.secretKey = key
 	}

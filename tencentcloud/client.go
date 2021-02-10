@@ -25,6 +25,7 @@ const (
 	defaultURI           = "/"
 	defaultQuery         = ""
 	schemaHttps          = "https"
+	authorizeFormat      = "%s Credential=%s/%s, SignedHeaders=%s, Signature=%s"
 
 	lineSep    = "\n"
 	dateLayout = "2006-01-02" // ref: package time
@@ -44,19 +45,15 @@ const (
 	languageZhCN    = "zh-CN"
 )
 
-func NewClient(opts ...Option) Client {
-	cli := &client{language: languageZhCN, region: regions.Guangzhou, client: &http.Client{}}
+func NewClient(opts ...Option) *Client {
+	cli := &Client{language: languageZhCN, region: regions.Guangzhou, client: &http.Client{}}
 	for idx := range opts {
 		opts[idx](cli)
 	}
 	return cli
 }
 
-type Client interface {
-	Send(ctx context.Context, action actions.Action, request, response interface{}) error
-}
-
-type client struct {
+type Client struct {
 	client *http.Client
 
 	secretID  string
@@ -65,66 +62,34 @@ type client struct {
 	language  string
 }
 
-func (c *client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
+func (c *Client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
+	}
+	u := url.URL{Scheme: schemaHttps, Host: action.Host(defaultDomain), Path: defaultURI, RawQuery: defaultQuery}
+	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
-	timestamp := strconv.FormatInt(now.Unix(), 10)
 	headers := map[string]string{
 		headerHost:        action.Host(defaultDomain),
 		headerContentType: contentTypeJson,
 
 		headerTCAction:      action.Action(),
 		headerTCVersion:     action.Version(),
-		headerTCTimestamp:   timestamp,
+		headerTCTimestamp:   strconv.FormatInt(now.Unix(), 10),
 		headerRequestClient: defaultRequestClient,
 		headerTCLanguage:    c.language,
 		headerTCRegion:      c.region,
 	}
-	//if c.credential.Token != "" {
-	//	headers["X-TC-Token"] = c.credential.Token
-	//}
-	signedHeaderFields, signedHeaders := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
 
-	requestPayload, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	hashedRequestPayload := sign.SHA256Hex(requestPayload)
-
-	canonicalRequest := strings.Join([]string{
-		defaultMethod,
-		defaultURI,
-		defaultQuery,
-		signedHeaders,
-		signedHeaderFields,
-		hashedRequestPayload,
-	}, lineSep)
-	hashedCanonicalRequest := sign.SHA256Hex([]byte(canonicalRequest))
-
-	date := now.UTC().Format(dateLayout)
-	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
-
-	string2sign := strings.Join([]string{algorithmSHA256, timestamp, scope, hashedCanonicalRequest}, lineSep)
-	signature := sign.Sign(string2sign, c.secretKey, action.Service(), date)
-	authorization := sign.Authorize(algorithmSHA256, c.secretID, scope, signedHeaderFields, signature)
-	headers["Authorization"] = authorization
-
-	u := url.URL{
-		Scheme:   schemaHttps,
-		Host:     action.Host(defaultDomain),
-		Path:     defaultURI,
-		RawQuery: defaultQuery,
-	}
-	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(requestPayload))
-	if err != nil {
-		return err
-	}
-
+	headers["Authorization"] = c.authorize(action, headers, body, now)
 	for k, v := range headers {
 		httpRequest.Header[k] = []string{v}
 	}
-
-	//output, _ := httputil.DumpRequest(httpRequest, true)
-	//fmt.Println(string(output))
 
 	httpResponse, err := c.client.Do(httpRequest)
 	if err != nil {
@@ -132,8 +97,6 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 	}
 	defer httpResponse.Body.Close()
 
-	//output, _ = httputil.DumpResponse(httpResponse, true)
-	//fmt.Println(string(output))
 	byts, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
 		return err
@@ -153,8 +116,19 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 	}
 
 	return json.Unmarshal(byts, response)
-	//if err != nil {
-	//	return errors.NewTencentCloudSDKError("ClientError.NetworkError", msg, "")
-	//}
-	//err = tchttp.ParseFromHttpResponse(httpResponse, response)
+}
+
+func (c *Client) authorize(action actions.Action, headers map[string]string, body []byte, now time.Time) string {
+	date := now.UTC().Format(dateLayout)
+	timestamp := strconv.FormatInt(now.Unix(), 10)
+	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
+	fields, signedHeaders := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
+
+	payload := sign.SHA256Hex(body)
+	payload = strings.Join([]string{defaultMethod, defaultURI, defaultQuery, signedHeaders, fields, payload}, lineSep)
+	payload = sign.SHA256Hex([]byte(payload))
+	payload = strings.Join([]string{algorithmSHA256, timestamp, scope, payload}, lineSep)
+	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
+	payload = fmt.Sprintf(authorizeFormat, algorithmSHA256, c.secretID, scope, fields, payload)
+	return payload
 }
