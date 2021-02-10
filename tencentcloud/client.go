@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
+	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
@@ -130,8 +131,8 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 		httpRequest.Header[k] = []string{v}
 	}
 
-	output, _ := httputil.DumpRequest(httpRequest, true)
-	fmt.Println(string(output))
+	//output, _ := httputil.DumpRequest(httpRequest, true)
+	//fmt.Println(string(output))
 
 	httpResponse, err := c.client.Do(httpRequest)
 	if err != nil {
@@ -139,11 +140,24 @@ func (c *client) Send(ctx context.Context, action actions.Action, request interf
 	}
 	defer httpResponse.Body.Close()
 
-	output, _ = httputil.DumpResponse(httpResponse, true)
-	fmt.Println(string(output))
+	//output, _ = httputil.DumpResponse(httpResponse, true)
+	//fmt.Println(string(output))
 	byts, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
 		return err
+	}
+
+	terr := common.ErrorResponse{}
+	err = json.Unmarshal(byts, &terr)
+	if err != nil {
+		return err
+	}
+	if terr.Response.Error.Code != "" {
+		return &errors.TencentCloudSDKError{
+			Code:      terr.Response.Error.Code,
+			Message:   terr.Response.Error.Message,
+			RequestId: terr.Response.RequestId,
+		}
 	}
 
 	return json.Unmarshal(byts, response)
