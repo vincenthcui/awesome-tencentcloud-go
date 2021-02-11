@@ -99,7 +99,6 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request interf
 		headerTCLanguage:    c.language,
 		headerTCRegion:      c.region,
 	}
-
 	headers["Authorization"] = c.authorize(action, headers, body, now)
 	for k, v := range headers {
 		httpRequest.Header[k] = []string{v}
@@ -116,17 +115,8 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request interf
 		return err
 	}
 
-	terr := common.ErrorResponse{}
-	err = json.Unmarshal(byts, &terr)
-	if err != nil {
+	if err = maybeError(byts); err != nil {
 		return err
-	}
-	if terr.Response.Error.Code != "" {
-		return &errors.TencentCloudSDKError{
-			Code:      terr.Response.Error.Code,
-			Message:   terr.Response.Error.Message,
-			RequestId: terr.Response.RequestId,
-		}
 	}
 
 	return json.Unmarshal(byts, response)
@@ -149,4 +139,20 @@ func (c *Client) authorize(action actions.Action, headers map[string]string, bod
 
 func joinLines(lines ...string) string {
 	return strings.Join(lines, eol)
+}
+
+func maybeError(bytes []byte) error {
+	payload := common.ErrorResponse{}
+	err := json.Unmarshal(bytes, &payload)
+	if err != nil {
+		return err
+	}
+	if payload.Response.Error.Code != "" {
+		return &errors.TencentCloudSDKError{
+			Code:      payload.Response.Error.Code,
+			Message:   payload.Response.Error.Message,
+			RequestId: payload.Response.RequestId,
+		}
+	}
+	return nil
 }
