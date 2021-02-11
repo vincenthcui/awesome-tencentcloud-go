@@ -25,7 +25,7 @@ const (
 	defaultURI           = "/"
 	defaultQuery         = ""
 	schemaHttps          = "https"
-	authorizeFormat      = "%s Credential=%s/%s, SignedHeaders=%s, Signature=%s"
+	authorizeFormat      = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
 
 	lineSep    = "\n"
 	dateLayout = "2006-01-02" // ref: package time
@@ -121,7 +121,7 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request interf
 func (c *Client) authorize(action actions.Action, headers map[string]string, body []byte, now time.Time) string {
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
-	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
+	scope := fmt.Sprintf("%s/%s/%s/%s", c.secretID, date, action.Service(), scopeTC3Request)
 	fields, signedHeaders := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
 
 	payload := sign.SHA256Hex(body)
@@ -129,6 +129,6 @@ func (c *Client) authorize(action actions.Action, headers map[string]string, bod
 	payload = sign.SHA256Hex([]byte(payload))
 	payload = strings.Join([]string{algorithmSHA256, timestamp, scope, payload}, lineSep)
 	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
-	payload = fmt.Sprintf(authorizeFormat, algorithmSHA256, c.secretID, scope, fields, payload)
+	payload = fmt.Sprintf(authorizeFormat, algorithmSHA256, scope, fields, payload)
 	return payload
 }
