@@ -25,9 +25,9 @@ const (
 	defaultURI           = "/"
 	defaultQuery         = ""
 	schemaHttps          = "https"
-	authorizeFormat      = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
+	authorizeTpl         = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
 
-	lineSep    = "\n"
+	eol        = "\n"         // end of line
 	dateLayout = "2006-01-02" // ref: package time
 
 	headerHost          = "Host"
@@ -46,7 +46,16 @@ const (
 )
 
 func NewClient(opts ...Option) *Client {
-	cli := &Client{language: languageZhCN, region: regions.Guangzhou, client: &http.Client{}}
+	cli := &Client{
+		client:    &http.Client{},
+		language:  languageZhCN,
+		region:    regions.Guangzhou,
+		algorithm: algorithmSHA256,
+
+		httpMethod: defaultMethod,
+		httpURI:    defaultURI,
+		httpQuery:  defaultQuery,
+	}
 	for idx := range opts {
 		opts[idx](cli)
 	}
@@ -60,6 +69,11 @@ type Client struct {
 	secretKey string
 	region    string
 	language  string
+	algorithm string
+
+	httpMethod string
+	httpURI    string
+	httpQuery  string
 }
 
 func (c *Client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
@@ -122,13 +136,17 @@ func (c *Client) authorize(action actions.Action, headers map[string]string, bod
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
 	scope := fmt.Sprintf("%s/%s/%s/%s", c.secretID, date, action.Service(), scopeTC3Request)
-	fields, signedHeaders := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
+	signedHeaders, signedHeadersVal := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
 
 	payload := sign.SHA256Hex(body)
-	payload = strings.Join([]string{defaultMethod, defaultURI, defaultQuery, signedHeaders, fields, payload}, lineSep)
+	payload = joinLines(c.httpMethod, c.httpURI, c.httpQuery, signedHeadersVal, signedHeaders, payload)
 	payload = sign.SHA256Hex([]byte(payload))
-	payload = strings.Join([]string{algorithmSHA256, timestamp, scope, payload}, lineSep)
+	payload = joinLines(c.algorithm, timestamp, scope, payload)
 	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
-	payload = fmt.Sprintf(authorizeFormat, algorithmSHA256, scope, fields, payload)
+	payload = fmt.Sprintf(authorizeTpl, c.algorithm, scope, signedHeaders, payload)
 	return payload
+}
+
+func joinLines(lines ...string) string {
+	return strings.Join(lines, eol)
 }
