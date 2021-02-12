@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	terrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
-	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
@@ -32,6 +30,7 @@ const (
 
 	headerHost          = "Host"
 	headerContentType   = "Content-Type"
+	headerAuthorization = "authorization"
 	headerTCAction      = "X-TC-Action"
 	headerTCVersion     = "X-TC-Version"
 	headerTCTimestamp   = "X-TC-Timestamp"
@@ -125,7 +124,7 @@ func (c *Client) send(action actions.Action, request interface{}, response inter
 		headerTCLanguage:    c.language,
 		headerTCRegion:      c.region,
 	}
-	headers["Authorization"] = c.authorize(action, headers, body, now)
+	headers[headerAuthorization] = c.authorize(action, headers, body, now)
 	for k, v := range headers {
 		httpRequest.Header[k] = []string{v}
 	}
@@ -165,20 +164,4 @@ func (c *Client) authorize(action actions.Action, headers map[string]string, bod
 
 func joinLines(lines ...string) string {
 	return strings.Join(lines, eol)
-}
-
-func maybeError(bytes []byte) error {
-	payload := common.ErrorResponse{}
-	err := json.Unmarshal(bytes, &payload)
-	if err != nil {
-		return err
-	}
-	if payload.Response.Error.Code != "" {
-		return &terrors.TencentCloudSDKError{
-			Code:      payload.Response.Error.Code,
-			Message:   payload.Response.Error.Message,
-			RequestId: payload.Response.RequestId,
-		}
-	}
-	return nil
 }
