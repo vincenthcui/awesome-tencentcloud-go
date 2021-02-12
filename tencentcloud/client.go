@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	defaultDomain        = "tencentcloudapi.com"
 	defaultRequestClient = "awesome-tencentcloud-go"
 	defaultMethod        = http.MethodPost
 	defaultURI           = "/"
@@ -107,7 +106,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
 	}
-	u := url.URL{Scheme: schemaHttps, Host: action.FullDomainName(defaultDomain), Path: defaultURI, RawQuery: defaultQuery}
+	u := url.URL{Scheme: schemaHttps, Host: domainName(action.Service()), Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -115,7 +114,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 
 	now := time.Now()
 	headers := map[string]string{
-		headerHost:        action.FullDomainName(defaultDomain),
+		headerHost:        domainName(action.Service()),
 		headerContentType: contentTypeJson,
 
 		headerTCAction:      action.Action(),
