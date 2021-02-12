@@ -57,6 +57,7 @@ func NewClient(opts ...Option) *Client {
 
 		interceptors: []Interceptor{
 			OnNetworkFailure,
+			OnRequestLimitExceeded,
 		},
 	}
 	for idx := range opts {
