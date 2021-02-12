@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
+	terrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
+	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/retry"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -55,6 +57,9 @@ func NewClient(opts ...Option) *Client {
 		httpMethod: defaultMethod,
 		httpURI:    defaultURI,
 		httpQuery:  defaultQuery,
+
+		retryItv: retry.ExponentialBackoff,
+		maxRetry: 5,
 	}
 	for idx := range opts {
 		opts[idx](cli)
@@ -74,9 +79,30 @@ type Client struct {
 	httpMethod string
 	httpURI    string
 	httpQuery  string
+
+	retryItv retry.Interval
+	maxRetry int
 }
 
 func (c *Client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
+	var err error
+	for i := 0; i < c.maxRetry; i++ {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(c.retryItv(i)):
+			err = c.sendOnce(action, request, response)
+			switch err.(type) {
+			case net.Error:
+				continue
+			}
+			return err
+		}
+	}
+	return fmt.Errorf("tencentcloud: max retry: %+v", err)
+}
+
+func (c *Client) sendOnce(action actions.Action, request interface{}, response interface{}) error {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
@@ -148,7 +174,7 @@ func maybeError(bytes []byte) error {
 		return err
 	}
 	if payload.Response.Error.Code != "" {
-		return &errors.TencentCloudSDKError{
+		return &terrors.TencentCloudSDKError{
 			Code:      payload.Response.Error.Code,
 			Message:   payload.Response.Error.Message,
 			RequestId: payload.Response.RequestId,
