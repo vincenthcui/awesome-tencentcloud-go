@@ -9,7 +9,6 @@ import (
 	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
-	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/retry"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
 	"net/http"
@@ -57,10 +56,9 @@ func NewClient(opts ...Option) *Client {
 		httpURI:    defaultURI,
 		httpQuery:  defaultQuery,
 
-		retryItv: retry.ExponentialBackoff,
-		maxRetry: 5,
-
-		interceptors: make([]Interceptor, 0),
+		interceptors: []Interceptor{
+			OnNetworkFailure,
+		},
 	}
 	for idx := range opts {
 		opts[idx](cli)
@@ -82,9 +80,6 @@ type Client struct {
 	httpQuery  string
 
 	interceptors []Interceptor
-
-	retryItv retry.Interval
-	maxRetry int
 }
 
 func (c *Client) Send(ctx context.Context, action actions.Action, request, response interface{}) error {
@@ -98,7 +93,7 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request, respo
 			for _, interceptor := range c.interceptors {
 				err = interceptor(ctx, action, request, response, err)
 			}
-			if err, ok := err.(RetryException); ok {
+			if err, ok := err.(NeedRetry); ok {
 				itv = err.In
 				continue
 			}

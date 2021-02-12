@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-type RetryException struct {
+type NeedRetry struct {
 	In time.Duration
 }
 
-func (retry RetryException) Error() string {
+func (retry NeedRetry) Error() string {
 	return fmt.Sprintf("retry in %f second", retry.In.Seconds())
 }
