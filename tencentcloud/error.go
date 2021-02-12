@@ -16,7 +16,7 @@ func (retry NeedRetry) Error() string {
 	return fmt.Sprintf("retry in %f second", retry.In.Seconds())
 }
 
-func maybeError(bytes []byte) error {
+func maybeFailed(bytes []byte) error {
 	payload := common.ErrorResponse{}
 	err := json.Unmarshal(bytes, &payload)
 	if err != nil {

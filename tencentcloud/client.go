@@ -139,7 +139,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 		return err
 	}
 
-	if err = maybeError(byts); err != nil {
+	if err = maybeFailed(byts); err != nil {
 		return err
 	}
 
