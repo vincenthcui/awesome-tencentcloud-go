@@ -14,6 +14,9 @@ const (
 
 // retry on temporary or timeout network failure
 func OnNetworkFailure(ctx context.Context, action actions.Action, request, response interface{}, err error) error {
+	if err != nil {
+		return err
+	}
 	if err, ok := err.(net.Error); ok {
 		if err.Temporary() || err.Timeout() {
 			return NeedRetry{In: time.Second}
@@ -23,6 +26,9 @@ func OnNetworkFailure(ctx context.Context, action actions.Action, request, respo
 }
 
 func OnRequestLimitExceeded(ctx context.Context, action actions.Action, request, response interface{}, err error) error {
+	if err != nil {
+		return err
+	}
 	if err, ok := err.(*errors.TencentCloudSDKError); ok {
 		if err.Code == CodeRequestLimitExceeded {
 			return NeedRetry{In: time.Second}
