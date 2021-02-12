@@ -80,6 +80,7 @@ type Client struct {
 }
 
 func (c *Client) Send(ctx context.Context, action Action, request, response interface{}) error {
+	injectClientToken(request)
 	itv := time.Duration(0)
 	for {
 		select {
@@ -100,9 +101,6 @@ func (c *Client) Send(ctx context.Context, action Action, request, response inte
 }
 
 func (c *Client) send(action Action, request interface{}, response interface{}) error {
-
-	injectClientToken(request)
-
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
