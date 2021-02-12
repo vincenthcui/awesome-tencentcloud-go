@@ -103,6 +103,9 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request, respo
 }
 
 func (c *Client) send(action actions.Action, request interface{}, response interface{}) error {
+
+	injectClientToken(request)
+
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
