@@ -60,6 +60,8 @@ func NewClient(opts ...Option) *Client {
 
 		retryItv: retry.ExponentialBackoff,
 		maxRetry: 5,
+
+		interceptors: make([]Interceptor, 0),
 	}
 	for idx := range opts {
 		opts[idx](cli)
@@ -79,6 +81,8 @@ type Client struct {
 	httpMethod string
 	httpURI    string
 	httpQuery  string
+
+	interceptors []Interceptor
 
 	retryItv retry.Interval
 	maxRetry int
