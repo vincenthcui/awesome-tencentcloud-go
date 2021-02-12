@@ -2,20 +2,22 @@ package tencentcloud
 
 import "fmt"
 
+// Action define a api request
 type Action interface {
+	// Service name, e.g. CVM/CDB/CLB
 	Service() string
+	// Action name, e.g. DescribeInstances
 	Action() string
+	// Version of api, e.g. 2017-03-12
 	Version() string
-	RateLimit()
-	WithRateLimit() Action
-	Host(domain string) string
+	// Host return full name domain with specific postfix
+	Host(postfix string) string
 }
 
 type action struct {
-	service   string
-	action    string
-	version   string
-	rateLimit interface{}
+	service string
+	action  string
+	version string
 }
 
 func (act action) Service() string {
@@ -30,23 +32,14 @@ func (act action) Version() string {
 	return act.version
 }
 
-func (act action) RateLimit() {
-
-}
-
-func (act action) WithRateLimit() Action {
-	return act
-}
-
-func (act action) Host(domain string) string {
-	return fmt.Sprintf("%s.%s", act.service, domain)
+func (act action) Host(postfix string) string {
+	return fmt.Sprintf("%s.%s", act.service, postfix)
 }
 
 var (
 	CVMDescribeInstances = action{
-		service:   "cvm",
-		action:    "DescribeInstances",
-		version:   "2017-03-12",
-		rateLimit: nil,
+		service: "cvm",
+		action:  "DescribeInstances",
+		version: "2017-03-12",
 	}
 )

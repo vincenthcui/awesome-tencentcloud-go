@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// raise NeedRetry in interceptor will retry current request in In seconds
 type NeedRetry struct {
 	In time.Duration
 }

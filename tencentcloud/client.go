@@ -41,6 +41,7 @@ const (
 	languageZhCN    = "zh-CN"
 )
 
+// NewClient create Client with defaults, mutate client with Option
 func NewClient(opts ...Option) *Client {
 	cli := &Client{
 		client:    &http.Client{},
@@ -54,7 +55,7 @@ func NewClient(opts ...Option) *Client {
 
 		interceptors: []Interceptor{
 			OnNetworkFailure,
-			OnRequestLimitExceeded,
+			OnRateLimitExceeded,
 		},
 	}
 	for idx := range opts {
@@ -79,6 +80,7 @@ type Client struct {
 	interceptors []Interceptor
 }
 
+// Send a common api request
 func (c *Client) Send(ctx context.Context, action Action, request, response interface{}) error {
 	injectClientToken(request)
 	itv := time.Duration(0)

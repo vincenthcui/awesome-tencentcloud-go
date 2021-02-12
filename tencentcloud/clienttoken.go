@@ -29,7 +29,7 @@ func injectClientToken(obj interface{}) {
 		return
 	}
 
-	// Set if nil or empty
+	// Set if ClientToken is nil or empty
 	if field.IsNil() || (field.Kind() == reflect.String && field.Elem().Len() == 0) {
 		uuidVal := uuid.NewV4().String()
 		field.Set(reflect.ValueOf(&uuidVal))
