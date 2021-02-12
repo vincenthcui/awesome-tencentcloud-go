@@ -25,7 +25,7 @@ const (
 
 	dateLayout = "2006-01-02" // ref: package time
 
-	headerHost          = "Host"
+	headerHost          = "FullDomainName"
 	headerContentType   = "Content-Type"
 	headerAuthorization = "authorization"
 	headerTCAction      = "X-TC-Action"
@@ -107,7 +107,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
 	}
-	u := url.URL{Scheme: schemaHttps, Host: action.Host(defaultDomain), Path: defaultURI, RawQuery: defaultQuery}
+	u := url.URL{Scheme: schemaHttps, Host: action.FullDomainName(defaultDomain), Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -115,7 +115,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 
 	now := time.Now()
 	headers := map[string]string{
-		headerHost:        action.Host(defaultDomain),
+		headerHost:        action.FullDomainName(defaultDomain),
 		headerContentType: contentTypeJson,
 
 		headerTCAction:      action.Action(),

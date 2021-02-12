@@ -10,8 +10,8 @@ type Action interface {
 	Action() string
 	// Version of api, e.g. 2017-03-12
 	Version() string
-	// Host return full name domain with specific postfix
-	Host(postfix string) string
+	// FullDomainName return full name domain with specific postfix
+	FullDomainName(postfix string) string
 }
 
 type action struct {
@@ -32,7 +32,7 @@ func (act action) Version() string {
 	return act.version
 }
 
-func (act action) Host(postfix string) string {
+func (act action) FullDomainName(postfix string) string {
 	return fmt.Sprintf("%s.%s", act.service, postfix)
 }
 
