@@ -12,7 +12,6 @@ import (
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/retry"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -88,25 +87,27 @@ type Client struct {
 	maxRetry int
 }
 
-func (c *Client) Send(ctx context.Context, action actions.Action, request interface{}, response interface{}) error {
-	var err error
-	for i := 0; i < c.maxRetry; i++ {
+func (c *Client) Send(ctx context.Context, action actions.Action, request, response interface{}) error {
+	itv := time.Duration(0)
+	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(c.retryItv(i)):
-			err = c.sendOnce(action, request, response)
-			switch err.(type) {
-			case net.Error:
+		case <-time.After(itv):
+			err := c.send(action, request, response)
+			for _, interceptor := range c.interceptors {
+				err = interceptor(ctx, action, request, response, err)
+			}
+			if err, ok := err.(RetryException); ok {
+				itv = err.In
 				continue
 			}
 			return err
 		}
 	}
-	return fmt.Errorf("tencentcloud: max retry: %+v", err)
 }
 
-func (c *Client) sendOnce(action actions.Action, request interface{}, response interface{}) error {
+func (c *Client) send(action actions.Action, request interface{}, response interface{}) error {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
