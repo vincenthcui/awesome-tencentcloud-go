@@ -1,4 +1,4 @@
-package actions
+package tencentcloud
 
 import "fmt"
 

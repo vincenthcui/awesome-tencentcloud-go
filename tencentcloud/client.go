@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
-	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions"
 	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
 	"net/http"
@@ -82,7 +81,7 @@ type Client struct {
 	interceptors []Interceptor
 }
 
-func (c *Client) Send(ctx context.Context, action actions.Action, request, response interface{}) error {
+func (c *Client) Send(ctx context.Context, action Action, request, response interface{}) error {
 	itv := time.Duration(0)
 	for {
 		select {
@@ -102,7 +101,7 @@ func (c *Client) Send(ctx context.Context, action actions.Action, request, respo
 	}
 }
 
-func (c *Client) send(action actions.Action, request interface{}, response interface{}) error {
+func (c *Client) send(action Action, request interface{}, response interface{}) error {
 
 	injectClientToken(request)
 
@@ -151,7 +150,7 @@ func (c *Client) send(action actions.Action, request interface{}, response inter
 	return json.Unmarshal(byts, response)
 }
 
-func (c *Client) authorize(action actions.Action, headers map[string]string, body []byte, now time.Time) string {
+func (c *Client) authorize(action Action, headers map[string]string, body []byte, now time.Time) string {
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
 	scope := fmt.Sprintf("%s/%s/%s/%s", c.secretID, date, action.Service(), scopeTC3Request)
