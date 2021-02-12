@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -24,7 +23,6 @@ const (
 	schemaHttps          = "https"
 	authorizeTpl         = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
 
-	eol        = "\n"         // end of line
 	dateLayout = "2006-01-02" // ref: package time
 
 	headerHost          = "Host"
@@ -163,8 +161,4 @@ func (c *Client) authorize(action Action, headers map[string]string, body []byte
 	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
 	payload = fmt.Sprintf(authorizeTpl, c.algorithm, scope, signedHeaders, payload)
 	return payload
-}
-
-func joinLines(lines ...string) string {
-	return strings.Join(lines, eol)
 }
