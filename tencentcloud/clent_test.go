@@ -21,9 +21,10 @@ var (
 func TestClient_Send(t *testing.T) {
 	setup()
 
-	cli := tencentcloud.NewClient(tencentcloud.WithSecret(secretID, secretKey))
 	req := &cvm.DescribeInstancesRequest{}
 	resp := &cvm.DescribeInstancesResponse{}
+
+	cli := tencentcloud.NewClient(tencentcloud.WithSecret(secretID, secretKey))
 	err := cli.Send(context.Background(), tencentcloud.CVMDescribeInstances, req, resp)
 	assert.NoError(t, err)
 }
