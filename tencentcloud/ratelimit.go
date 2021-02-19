@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	codeRequestLimitExceeded = "codeRequestLimitExceeded"
+	codeRequestLimitExceeded = "RequestLimitExceeded"
 )
 
 // OnRateLimitExceeded will retry on rate limit exceeded in 1s
