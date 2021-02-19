@@ -5,34 +5,36 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
-	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
+
+	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 )
 
 const (
-	defaultRequestClient = "awesome-tencentcloud-go"
-	defaultMethod        = http.MethodPost
-	defaultURI           = "/"
-	defaultQuery         = ""
-	schemaHttps          = "https"
-	authorizeTpl         = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
+	defaultMethod = http.MethodPost
+	defaultURI    = "/"
+	defaultQuery  = ""
+	schemaHttps   = "https"
+	authorizeTpl  = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
 
-	dateLayout = "2006-01-02" // ref: package time
+	clientVersion = "awesome-tencentcloud-go@v1"
+	dateLayout    = "2006-01-02" // ref: package time
 
-	headerHost          = "FullDomainName"
-	headerContentType   = "Content-Type"
-	headerAuthorization = "authorization"
-	headerTCAction      = "X-TC-Action"
-	headerTCVersion     = "X-TC-Version"
-	headerTCTimestamp   = "X-TC-Timestamp"
-	headerTCLanguage    = "X-TC-Language"
-	headerTCRegion      = "X-TC-Region"
-	headerRequestClient = "X-TC-RequestClient"
+	headerHost            = "Host"
+	headerContentType     = "Content-Type"
+	headerAuthorization   = "Authorization"
+	headerTCRequestClient = "X-TC-RequestClient"
+	headerTCAction        = "X-TC-Action"
+	headerTCVersion       = "X-TC-Version"
+	headerTCTimestamp     = "X-TC-Timestamp"
+	headerTCLanguage      = "X-TC-Language"
+	headerTCRegion        = "X-TC-Region"
 
 	contentTypeJson = "application/json"
 	algorithmSHA256 = "TC3-HMAC-SHA256"
@@ -114,20 +116,17 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 
 	now := time.Now()
 	headers := map[string]string{
-		headerHost:        domainName(action.Service()),
-		headerContentType: contentTypeJson,
-
-		headerTCAction:      action.Action(),
-		headerTCVersion:     action.Version(),
-		headerTCTimestamp:   strconv.FormatInt(now.Unix(), 10),
-		headerRequestClient: defaultRequestClient,
-		headerTCLanguage:    c.language,
-		headerTCRegion:      c.region,
+		headerHost:            domainName(action.Service()),
+		headerContentType:     contentTypeJson,
+		headerTCRequestClient: clientVersion,
+		headerTCAction:        action.Action(),
+		headerTCVersion:       action.Version(),
+		headerTCTimestamp:     strconv.FormatInt(now.Unix(), 10),
+		headerTCLanguage:      c.language,
+		headerTCRegion:        c.region,
 	}
 	headers[headerAuthorization] = c.authorize(action, headers, body, now)
-	for k, v := range headers {
-		httpRequest.Header[k] = []string{v}
-	}
+	httpRequest.Header = toHttpHeader(headers)
 
 	httpResponse, err := c.client.Do(httpRequest)
 	if err != nil {
