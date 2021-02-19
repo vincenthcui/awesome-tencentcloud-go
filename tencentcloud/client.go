@@ -21,7 +21,7 @@ const (
 	defaultURI    = "/"
 	defaultQuery  = ""
 	schemaHttps   = "https"
-	authorizeTpl  = "%s Credential=%s, SignedHeaders=%s, Signature=%s"
+	authorizeTpl  = "%s Credential=%s/%s, SignedHeaders=%s, Signature=%s"
 
 	clientVersion = "awesome-tencentcloud-go@v1"
 	dateLayout    = "2006-01-02" // ref: package time
@@ -149,7 +149,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 func (c *Client) authorize(action Action, headers map[string]string, body []byte, now time.Time) string {
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
-	scope := fmt.Sprintf("%s/%s/%s/%s", c.secretID, date, action.Service(), scopeTC3Request)
+	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
 	signedHeaders, signedHeadersVal := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
 
 	payload := sign.SHA256Hex(body)
@@ -157,6 +157,6 @@ func (c *Client) authorize(action Action, headers map[string]string, body []byte
 	payload = sign.SHA256Hex([]byte(payload))
 	payload = joinLines(c.algorithm, timestamp, scope, payload)
 	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
-	payload = fmt.Sprintf(authorizeTpl, c.algorithm, scope, signedHeaders, payload)
+	payload = fmt.Sprintf(authorizeTpl, c.algorithm, c.secretID, scope, signedHeaders, payload)
 	return payload
 }
