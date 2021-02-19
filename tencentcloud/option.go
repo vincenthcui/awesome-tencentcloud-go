@@ -15,3 +15,9 @@ func WithSecret(id, key string) Option {
 		c.secretKey = key
 	}
 }
+
+func WithRegion(region string) Option {
+	return func(c *Client) {
+		c.region = region
+	}
+}
