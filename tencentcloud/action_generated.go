@@ -18,6 +18,16 @@ var (
 		version: "2017-03-12",
 		action:  "RunInstances",
 	}
+	CVMTerminateInstances = action{
+		service: "cvm",
+		version: "2017-03-12",
+		action:  "TerminateInstances",
+	}
+	CVMResetInstance = action{
+		service: "cvm",
+		version: "2017-03-12",
+		action:  "ResetInstance",
+	}
 	CVMDescribeInstanceTypeConfigs = action{
 		service: "cvm",
 		version: "2017-03-12",
