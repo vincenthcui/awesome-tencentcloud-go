@@ -13,6 +13,11 @@ var (
 		version: "2017-03-12",
 		action:  "DescribeImages",
 	}
+	CVMRunInstances = action{
+		service: "cvm",
+		version: "2017-03-12",
+		action:  "RunInstances",
+	}
 	CVMDescribeInstanceTypeConfigs = action{
 		service: "cvm",
 		version: "2017-03-12",
