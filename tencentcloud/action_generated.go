@@ -38,4 +38,14 @@ var (
 		version: "2018-08-13",
 		action:  "ModifyResourcesTagValue",
 	}
+	CAMAttachUserPolicy = action{
+		service: "tag",
+		version: "2018-08-13",
+		action:  "AttachUserPolicy",
+	}
+	CAMCreatePolicy = action{
+		service: "tag",
+		version: "2018-08-13",
+		action:  "CreatePolicy",
+	}
 )
