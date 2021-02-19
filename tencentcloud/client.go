@@ -12,8 +12,6 @@ import (
 	"time"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
-
-	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/sign"
 )
 
 const (
@@ -150,13 +148,13 @@ func (c *Client) authorize(action Action, headers map[string]string, body []byte
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
 	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
-	signedHeaders, signedHeadersVal := sign.SignedHeaders(headers).PickOut(headerContentType, headerHost)
+	signedHeaders, signedHeadersVal := signHeaders(headers, headerContentType, headerHost)
 
-	payload := sign.SHA256Hex(body)
+	payload := sha256hex(body)
 	payload = joinLines(c.httpMethod, c.httpURI, c.httpQuery, signedHeadersVal, signedHeaders, payload)
-	payload = sign.SHA256Hex([]byte(payload))
+	payload = sha256hex([]byte(payload))
 	payload = joinLines(c.algorithm, timestamp, scope, payload)
-	payload = sign.Sign(payload, c.secretKey, action.Service(), date)
+	payload = sign(payload, c.secretKey, action.Service(), date)
 	payload = fmt.Sprintf(authorizeTpl, c.algorithm, c.secretID, scope, signedHeaders, payload)
 	return payload
 }
