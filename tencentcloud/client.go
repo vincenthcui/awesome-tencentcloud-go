@@ -64,7 +64,7 @@ func NewClient(opts ...Option) *Client {
 }
 
 type Client struct {
-	client *http.Client
+	client HttpClient
 
 	secretID  string
 	secretKey string
