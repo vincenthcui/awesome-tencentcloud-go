@@ -162,8 +162,3 @@ func (c *Client) authorize(action Action, headers map[string]string, body []byte
 func (c Client) Region() string {
 	return c.region
 }
-
-// IgnoreResponse return anonymous map to ignore reponse
-func IgnoreResponse() *map[string]interface{} {
-	return &map[string]interface{}{}
-}
