@@ -40,17 +40,17 @@ var (
 	}
 	CAMAttachUserPolicy = action{
 		service: "cam",
-		version: "2018-08-13",
+		version: "2019-01-16",
 		action:  "AttachUserPolicy",
 	}
 	CAMCreatePolicy = action{
 		service: "cam",
-		version: "2018-08-13",
+		version: "2019-01-16",
 		action:  "CreatePolicy",
 	}
 	CAMDeletePolicy = action{
 		service: "cam",
-		version: "2018-08-13",
+		version: "2019-01-16",
 		action:  "DeletePolicy",
 	}
 )
