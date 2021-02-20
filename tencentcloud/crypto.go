@@ -6,9 +6,9 @@ import (
 	"encoding/hex"
 )
 
-func SHA256(plain, key []byte) []byte {
+func sha256crypt(plain, key []byte) []byte {
 	algor := hmac.New(sha256.New, key)
-	algor.Write(plain)
+	algor.Write(plain) // nolint:errcheck
 	return algor.Sum(nil)
 }
 
@@ -23,8 +23,8 @@ const (
 )
 
 func sign(plain, key, service, date string) string {
-	secret := SHA256([]byte(date), []byte(version3+key))
-	secret = SHA256([]byte(service), secret)
-	secret = SHA256([]byte(tc3Request), secret)
-	return hex.EncodeToString(SHA256([]byte(plain), secret))
+	secret := sha256crypt([]byte(date), []byte(version3+key))
+	secret = sha256crypt([]byte(service), secret)
+	secret = sha256crypt([]byte(tc3Request), secret)
+	return hex.EncodeToString(sha256crypt([]byte(plain), secret))
 }

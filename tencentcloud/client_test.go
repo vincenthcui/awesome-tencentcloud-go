@@ -31,12 +31,7 @@ func TestClient_Send(t *testing.T) {
 
 func setup() {
 	once.Do(func() {
-		var ok bool
-		if secretID, ok = os.LookupEnv("TC_SECRET_ID"); !ok {
-			panic("env TC_SECRET_ID is required for test")
-		}
-		if secretKey, _ = os.LookupEnv("TC_SECRET_KEY"); !ok {
-			panic("env TC_SECRET_KEY is required for test")
-		}
+		secretID, _ = os.LookupEnv("TC_SECRET_ID")
+		secretKey, _ = os.LookupEnv("TC_SECRET_KEY")
 	})
 }

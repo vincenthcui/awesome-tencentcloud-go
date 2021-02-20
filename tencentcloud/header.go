@@ -17,7 +17,7 @@ func signHeaders(headers map[string]string, fields ...string) (signedFields stri
 
 	lines := make([]string, 0, len(fields))
 	for _, field := range fields {
-		val, _ := headers[field]
+		val, _ := headers[field] // nolint:gosimple
 		field = strings.ToLower(field)
 		lines = append(lines, fmt.Sprintf("%s:%s\n", field, val))
 	}
@@ -31,7 +31,7 @@ func signHeaders(headers map[string]string, fields ...string) (signedFields stri
 }
 
 func toHttpHeader(headers map[string]string) map[string][]string {
-	header := make(map[string][]string, 0)
+	header := make(map[string][]string)
 	for k, v := range headers {
 		header[k] = []string{v}
 	}

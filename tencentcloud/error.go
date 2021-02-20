@@ -2,20 +2,9 @@ package tencentcloud
 
 import (
 	"encoding/json"
-	"fmt"
 	terrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
-	"time"
 )
-
-// raise NeedRetry in interceptor will retry current request in In seconds
-type NeedRetry struct {
-	In time.Duration
-}
-
-func (retry NeedRetry) Error() string {
-	return fmt.Sprintf("retry in %f second", retry.In.Seconds())
-}
 
 func maybeFailed(bytes []byte) error {
 	payload := common.ErrorResponse{}
