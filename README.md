@@ -33,6 +33,13 @@ func main() {
 }
 ```
 
+### 特性 Features
+
+- 自动重试 Automatic retry
+- 注入客户端凭证 Automatic inject ClientToken
+- 跨越频限 Cross through rate-limit
+- 超时控制 Timeout control
+
 ### 为什么要重新做一套 Why
 
 [官方SDK](https://github.com/TencentCloud/tencentcloud-sdk-go)
