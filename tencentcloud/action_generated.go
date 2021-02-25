@@ -53,4 +53,29 @@ var (
 		version: "2019-01-16",
 		action:  "DeletePolicy",
 	}
+	CDBRunInstanceHour = action{
+		service: "cdb",
+		version: "2017-03-20",
+		action:  "CreateDBInstanceHour",
+	}
+	CDBDescribeInstances = action{
+		service: "cdb",
+		version: "2017-03-20",
+		action:  "DescribeDBInstances",
+	}
+	OpenWanService = action{
+		service: "cdb",
+		version: "2017-03-20",
+		action:  "OpenWanService",
+	}
+	CDBIsolateInstance = action{
+		service: "cdb",
+		version: "2017-03-20",
+		action:  "IsolateDBInstance",
+	}
+	CDBOfflineIsolatedInstances = action{
+		service: "cdb",
+		version: "2017-03-20",
+		action:  "OfflineIsolatedInstances",
+	}
 )
