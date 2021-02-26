@@ -2,6 +2,7 @@ package tencentcloud_test
 
 import (
 	"context"
+	act "github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions/cvm/2017-03-12"
 	"os"
 	"sync"
 	"testing"
@@ -25,7 +26,7 @@ func TestClient_Send(t *testing.T) {
 	resp := &cvm.DescribeInstancesResponse{}
 
 	cli := tencentcloud.NewClient(tencentcloud.WithSecret(secretID, secretKey))
-	err := cli.Send(context.Background(), tencentcloud.CVMDescribeInstances, req, resp)
+	err := cli.Send(context.Background(), act.DescribeInstances, req, resp)
 	assert.NoError(t, err)
 }
 

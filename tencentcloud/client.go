@@ -106,7 +106,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
 	}
-	u := url.URL{Scheme: schemaHttps, Host: domainName(action.Service()), Path: defaultURI, RawQuery: defaultQuery}
+	u := url.URL{Scheme: schemaHttps, Host: domainName(action.Service), Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -114,11 +114,11 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 
 	now := time.Now()
 	headers := map[string]string{
-		headerHost:            domainName(action.Service()),
+		headerHost:            domainName(action.Service),
 		headerContentType:     contentTypeJson,
 		headerTCRequestClient: clientVersion,
-		headerTCAction:        action.Action(),
-		headerTCVersion:       action.Version(),
+		headerTCAction:        action.Action,
+		headerTCVersion:       action.Version,
 		headerTCTimestamp:     strconv.FormatInt(now.Unix(), 10),
 		headerTCLanguage:      c.language,
 		headerTCRegion:        c.region,
@@ -147,14 +147,14 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 func (c *Client) authorize(action Action, headers map[string]string, body []byte, now time.Time) string {
 	date := now.UTC().Format(dateLayout)
 	timestamp := strconv.FormatInt(now.Unix(), 10)
-	scope := fmt.Sprintf("%s/%s/%s", date, action.Service(), scopeTC3Request)
+	scope := fmt.Sprintf("%s/%s/%s", date, action.Service, scopeTC3Request)
 	signedHeaders, signedHeadersVal := signHeaders(headers, headerContentType, headerHost)
 
 	payload := sha256hex(body)
 	payload = joinLines(c.httpMethod, c.httpURI, c.httpQuery, signedHeadersVal, signedHeaders, payload)
 	payload = sha256hex([]byte(payload))
 	payload = joinLines(c.algorithm, timestamp, scope, payload)
-	payload = sign(payload, c.secretKey, action.Service(), date)
+	payload = sign(payload, c.secretKey, action.Service, date)
 	payload = fmt.Sprintf(authorizeTpl, c.algorithm, c.secretID, scope, signedHeaders, payload)
 	return payload
 }

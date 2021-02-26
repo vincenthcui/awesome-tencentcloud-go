@@ -2,6 +2,7 @@ package tencentcloud_test
 
 import (
 	"context"
+	act "github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions/cvm/2017-03-12"
 	"net/http"
 	"testing"
 	"time"
@@ -24,6 +25,6 @@ func TestOnNetworkFailure(t *testing.T) {
 	client := tc.NewClient(tc.WithSecret(secretID, secretID), tc.WithHttpClient(&http.Client{
 		Timeout: time.Duration(1),
 	}))
-	err := client.Send(ctx, tc.CVMRunInstances, req, resp)
+	err := client.Send(ctx, act.RunInstances, req, resp)
 	assert.ErrorIs(t, err, context.DeadlineExceeded)
 }

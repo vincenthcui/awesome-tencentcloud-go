@@ -3,6 +3,7 @@ package tencentcloud_test
 import (
 	"bytes"
 	"context"
+	act "github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions/cvm/2017-03-12"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -35,6 +36,6 @@ func TestOnRateLimitExceeded(t *testing.T) {
 	resp := cvm.NewRunInstancesResponse()
 
 	client := tc.NewClient(tc.WithSecret(secretID, secretID), tc.WithHttpClient(&limitAlwaysExceeded{}))
-	err := client.Send(ctx, tc.CVMRunInstances, req, resp)
+	err := client.Send(ctx, act.RunInstances, req, resp)
 	assert.ErrorIs(t, err, context.DeadlineExceeded)
 }
