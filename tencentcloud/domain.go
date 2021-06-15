@@ -3,9 +3,9 @@ package tencentcloud
 import "fmt"
 
 const (
-	defaultDomain = "tencentcloudapi.com"
+	defaultBasicDomain = "tencentcloudapi.com"
 )
 
-func domainName(service string) string {
-	return fmt.Sprintf("%s.%s", service, defaultDomain)
+func (c Client) domain(service string) string {
+	return fmt.Sprintf("%s.%s", service, c.basicDomain)
 }

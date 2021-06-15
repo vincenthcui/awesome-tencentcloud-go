@@ -48,9 +48,10 @@ func NewClient(opts ...Option) *Client {
 		region:    regions.Guangzhou,
 		algorithm: algorithmSHA256,
 
-		httpMethod: defaultMethod,
-		httpURI:    defaultURI,
-		httpQuery:  defaultQuery,
+		basicDomain: defaultBasicDomain,
+		httpMethod:  defaultMethod,
+		httpURI:     defaultURI,
+		httpQuery:   defaultQuery,
 
 		interceptors: []Interceptor{
 			OnNetworkFailure,
@@ -72,9 +73,10 @@ type Client struct {
 	language  string
 	algorithm string
 
-	httpMethod string
-	httpURI    string
-	httpQuery  string
+	basicDomain string
+	httpMethod  string
+	httpURI     string
+	httpQuery   string
 
 	interceptors []Interceptor
 }
@@ -106,7 +108,9 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
 	}
-	u := url.URL{Scheme: schemaHttps, Host: domainName(action.Service), Path: defaultURI, RawQuery: defaultQuery}
+
+	domain := c.domain(action.Service)
+	u := url.URL{Scheme: schemaHttps, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -114,7 +118,7 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 
 	now := time.Now()
 	headers := map[string]string{
-		headerHost:            domainName(action.Service),
+		headerHost:            domain,
 		headerContentType:     contentTypeJson,
 		headerTCRequestClient: clientVersion,
 		headerTCAction:        action.Action,

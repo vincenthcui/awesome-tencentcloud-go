@@ -21,3 +21,10 @@ func WithRegion(region string) Option {
 		c.region = region
 	}
 }
+
+// WithBasicDomain customize basic basic domain name
+func WithBasicDomain(domain string) Option {
+	return func(c *Client) {
+		c.basicDomain = domain
+	}
+}
