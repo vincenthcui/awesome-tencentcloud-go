@@ -2,10 +2,11 @@ package tencentcloud_test
 
 import (
 	"context"
-	act "github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions/cvm/2017-03-12"
 	"os"
 	"sync"
 	"testing"
+
+	act "github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/actions/cvm/2017-03-12"
 
 	"github.com/stretchr/testify/assert"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"

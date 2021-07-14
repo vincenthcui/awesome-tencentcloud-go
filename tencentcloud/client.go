@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions"
+
+	"github.com/vincenthcui/awesome-tencentcloud-go/tencentcloud/metrics"
 )
 
 const (
@@ -103,13 +105,15 @@ func (c *Client) Send(ctx context.Context, action Action, request, response inte
 	}
 }
 
-func (c *Client) send(action Action, request interface{}, response interface{}) error {
+func (c *Client) send(act Action, request interface{}, response interface{}) error {
+	metrics.RequestTotal.WithLabelValues(c.secretID, act.Service, act.Action, act.Version).Add(1)
+
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("tencentcloud: marshal request failed: %+v", err)
 	}
 
-	domain := c.domain(action.Service)
+	domain := c.domain(act.Service)
 	u := url.URL{Scheme: schemaHttps, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
@@ -121,13 +125,13 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 		headerHost:            domain,
 		headerContentType:     contentTypeJson,
 		headerTCRequestClient: clientVersion,
-		headerTCAction:        action.Action,
-		headerTCVersion:       action.Version,
+		headerTCAction:        act.Action,
+		headerTCVersion:       act.Version,
 		headerTCTimestamp:     strconv.FormatInt(now.Unix(), 10),
 		headerTCLanguage:      c.language,
 		headerTCRegion:        c.region,
 	}
-	headers[headerAuthorization] = c.authorize(action, headers, body, now)
+	headers[headerAuthorization] = c.authorize(act, headers, body, now)
 	httpRequest.Header = toHttpHeader(headers)
 
 	httpResponse, err := c.client.Do(httpRequest)
@@ -136,12 +140,16 @@ func (c *Client) send(action Action, request interface{}, response interface{}) 
 	}
 	defer httpResponse.Body.Close()
 
+	duration := time.Now().Sub(now).Milliseconds()
+	metrics.RequestDuration.WithLabelValues(c.secretID, act.Service, act.Action, act.Version).Set(float64(duration))
+
 	byts, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
 		return err
 	}
 
-	if err = maybeFailed(byts); err != nil {
+	if err := maybeFailed(byts); err != nil {
+		metrics.ErrorTotal.WithLabelValues(c.secretID, act.Service, act.Action, act.Version, err.Code).Add(1)
 		return err
 	}
 

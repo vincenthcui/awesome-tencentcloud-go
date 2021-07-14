@@ -2,15 +2,19 @@ package tencentcloud
 
 import (
 	"encoding/json"
+
 	terrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	common "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
 )
 
-func maybeFailed(bytes []byte) error {
+func maybeFailed(bytes []byte) *terrors.TencentCloudSDKError {
 	payload := common.ErrorResponse{}
 	err := json.Unmarshal(bytes, &payload)
 	if err != nil {
-		return err
+		return &terrors.TencentCloudSDKError{
+			Code:    "ClientError.ParseJsonError",
+			Message: err.Error(),
+		}
 	}
 	if payload.Response.Error.Code != "" {
 		return &terrors.TencentCloudSDKError{
