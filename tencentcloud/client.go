@@ -106,7 +106,7 @@ func (c *Client) Send(ctx context.Context, action Action, request, response inte
 }
 
 func (c *Client) send(act Action, request interface{}, response interface{}) error {
-	metrics.RequestTotal.WithLabelValues(c.secretID, act.Service, act.Action, act.Version).Add(1)
+	metrics.RequestTotal.WithLabelValues(act.Service, act.Action, act.Version).Add(1)
 
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -141,7 +141,7 @@ func (c *Client) send(act Action, request interface{}, response interface{}) err
 	defer httpResponse.Body.Close()
 
 	duration := time.Now().Sub(now).Milliseconds()
-	metrics.RequestDuration.WithLabelValues(c.secretID, act.Service, act.Action, act.Version).Set(float64(duration))
+	metrics.RequestDuration.WithLabelValues(act.Service, act.Action, act.Version).Set(float64(duration))
 
 	byts, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
@@ -149,7 +149,7 @@ func (c *Client) send(act Action, request interface{}, response interface{}) err
 	}
 
 	if err := maybeFailed(byts); err != nil {
-		metrics.ErrorTotal.WithLabelValues(c.secretID, act.Service, act.Action, act.Version, err.Code).Add(1)
+		metrics.ErrorTotal.WithLabelValues(act.Service, act.Action, act.Version, err.Code).Add(1)
 		return err
 	}
 

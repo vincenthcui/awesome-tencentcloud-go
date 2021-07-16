@@ -7,11 +7,11 @@ import (
 var (
 	RequestTotal = prom.NewCounterVec(
 		prom.CounterOpts{Subsystem: "awesome_tencentcloud_client", Name: "request_total"},
-		[]string{"sid", "service", "action", "version"},
+		[]string{"service", "action", "version"},
 	)
 	ErrorTotal = prom.NewCounterVec(
 		prom.CounterOpts{Subsystem: "awesome_tencentcloud_client", Name: "error_total"},
-		[]string{"sid", "service", "action", "version", "code"},
+		[]string{"service", "action", "version", "code"},
 	)
 	NetworkFailureRetryTotal = prom.NewCounterVec(
 		prom.CounterOpts{Subsystem: "awesome_tencentcloud_client", Name: "network_failure_retry_total"},
