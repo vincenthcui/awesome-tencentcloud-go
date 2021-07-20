@@ -28,3 +28,9 @@ func WithBasicDomain(domain string) Option {
 		c.basicDomain = domain
 	}
 }
+
+func WithSchema(schema string) Option {
+	return func(c *Client) {
+		c.schema = schema
+	}
+}

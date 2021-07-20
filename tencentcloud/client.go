@@ -20,7 +20,7 @@ const (
 	defaultMethod = http.MethodPost
 	defaultURI    = "/"
 	defaultQuery  = ""
-	schemaHttps   = "https"
+	defaultSchema = "https"
 	authorizeTpl  = "%s Credential=%s/%s, SignedHeaders=%s, Signature=%s"
 
 	clientVersion = "awesome-tencentcloud-go@v1"
@@ -50,6 +50,7 @@ func NewClient(opts ...Option) *Client {
 		region:    regions.Guangzhou,
 		algorithm: algorithmSHA256,
 
+		schema:      defaultSchema,
 		basicDomain: defaultBasicDomain,
 		httpMethod:  defaultMethod,
 		httpURI:     defaultURI,
@@ -75,6 +76,7 @@ type Client struct {
 	language  string
 	algorithm string
 
+	schema      string
 	basicDomain string
 	httpMethod  string
 	httpURI     string
@@ -114,7 +116,7 @@ func (c *Client) send(act Action, request interface{}, response interface{}) err
 	}
 
 	domain := c.domain(act.Service)
-	u := url.URL{Scheme: schemaHttps, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
+	u := url.URL{Scheme: defaultSchema, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
