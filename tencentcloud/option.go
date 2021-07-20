@@ -34,3 +34,9 @@ func WithSchema(schema string) Option {
 		c.schema = schema
 	}
 }
+
+func WithToken(token string) Option {
+	return func(c *Client) {
+		c.schema = token
+	}
+}

@@ -35,6 +35,7 @@ const (
 	headerTCTimestamp     = "X-TC-Timestamp"
 	headerTCLanguage      = "X-TC-Language"
 	headerTCRegion        = "X-TC-Region"
+	headerTCToken         = "X-TC-Token"
 
 	contentTypeJson = "application/json"
 	algorithmSHA256 = "TC3-HMAC-SHA256"
@@ -81,6 +82,7 @@ type Client struct {
 	httpMethod  string
 	httpURI     string
 	httpQuery   string
+	token       string
 
 	interceptors []Interceptor
 }
@@ -132,6 +134,9 @@ func (c *Client) send(act Action, request interface{}, response interface{}) err
 		headerTCTimestamp:     strconv.FormatInt(now.Unix(), 10),
 		headerTCLanguage:      c.language,
 		headerTCRegion:        c.region,
+	}
+	if c.token != "" {
+		headers[headerTCToken] = c.token
 	}
 	headers[headerAuthorization] = c.authorize(act, headers, body, now)
 	httpRequest.Header = toHttpHeader(headers)
