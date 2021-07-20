@@ -116,7 +116,7 @@ func (c *Client) send(act Action, request interface{}, response interface{}) err
 	}
 
 	domain := c.domain(act.Service)
-	u := url.URL{Scheme: defaultSchema, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
+	u := url.URL{Scheme: c.schema, Host: domain, Path: defaultURI, RawQuery: defaultQuery}
 	httpRequest, err := http.NewRequest(defaultMethod, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return err
