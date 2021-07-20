@@ -37,6 +37,6 @@ func WithSchema(schema string) Option {
 
 func WithToken(token string) Option {
 	return func(c *Client) {
-		c.schema = token
+		c.token = token
 	}
 }
